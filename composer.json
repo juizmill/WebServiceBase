@@ -1,5 +1,5 @@
 {
-    "name": "juizmill/WebServiceBase",
+    "name": "juizmill/web-service-base",
     "description": "Base para Web Service em ZF 2",
     "type": "library",
     "license": "MIT",
