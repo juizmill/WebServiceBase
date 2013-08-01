@@ -1,0 +1,29 @@
+{
+    "name": "juizmill/WebService",
+    "description": "Base para Web Service em ZF 2",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "module",
+        "zf2"
+    ],
+    "homepage": "http://framework.zend.com",
+    "authors": [
+        {
+            "name": "juizmill",
+            "email": "jesusvieiradelima@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3"
+    },
+    "require-dev": {
+        "zendframework/zendframework": "dev-master"
+    },
+    "autoload": {
+        "psr-0": {
+            "WebServiceBase": "src/"
+        }
+    }
+
+}

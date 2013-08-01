@@ -1,0 +1,154 @@
+<?php
+
+namespace WebServiceBase\Model;
+
+use Zend\Db\TableGateway\Exception\InvalidArgumentException;
+use Zend\Db\Adapter\Adapter;
+use Zend\Db\ResultSet\ResultSet;
+use Zend\Db\TableGateway\AbstractTableGateway;
+use Zend\Db\Sql\Select;
+
+
+/**
+ * Class ArquivoTable
+ * @package Aluno\Model
+ */
+abstract class AbstractTable extends AbstractTableGateway
+{
+    /**
+     * Nome da Tabela
+     * @var string
+     */
+    protected $table;
+    /**
+     * Classe mapeada
+     * @var string
+     */
+    protected $classTable;
+
+    /**
+     * @param Adapter $adapter
+     */
+    public function __construct(Adapter $adapter)
+    {
+        if (is_null($this->table))
+            throw new InvalidArgumentException('Table name is not defined');
+
+        if (is_null($this->classTable))
+            throw new InvalidArgumentException('Class mapping not defined');
+
+
+        $this->adapter = $adapter;
+        $this->resultSetPrototype = new ResultSet();
+        $this->resultSetPrototype->setArrayObjectPrototype(new $this->classTable());
+        $this->initialize();
+    }
+
+    /**
+     * Retorna todos os registros
+     * @param null $order
+     * @return array
+     */
+    public function fetchAll($order = null)
+    {
+        //Definindo novo select
+        $select = new Select();
+        $select->from($this->table);
+
+        if (! is_null($order))
+            $select->order($order);
+
+        //Configurando o novo select
+        $statement = $this->adapter->createStatement();
+        $select->prepareStatement($this->adapter, $statement);
+        $resultSet = new ResultSet;
+        $result = $resultSet->initialize($statement->execute());
+
+        return $result->toArray();
+    }
+
+    /**
+     * Retorna registro conforme especificação de limite e por pagina
+     * @param int $limit
+     * @param int $countPerPage
+     * @param null $order
+     * @return array
+     * @throws \Zend\Db\TableGateway\Exception\InvalidArgumentException
+     */
+    public function fetchAllPaginator($limit = 1, $countPerPage = 2, $order = null){
+
+        if (! is_numeric($limit))
+            throw new InvalidArgumentException('Invalid argument in $limit, expected an numeric');
+
+        if (! is_numeric($countPerPage))
+            throw new InvalidArgumentException('Invalid argument in $countPerPage, expected an numeric');
+
+        if (!is_null($order))
+            $order = "ORDER BY {$order}";
+
+        $sql = "SELECT FIRST {$limit} SKIP {$countPerPage} {$this->table}.*  FROM {$this->table} {$order}";
+
+        $statement = $this->adapter->createStatement($sql);
+        $resultSet = new ResultSet;
+        $result = $resultSet->initialize($statement->execute());
+
+        return $result->toArray();
+    }
+
+    /**
+     * Retorna um registro especifico
+     * @param array $param
+     * @return array
+     * @throws \Zend\Db\TableGateway\Exception\InvalidArgumentException
+     */
+    public function findBy(Array $param = array())
+    {
+        if (! is_array($param))
+            throw new InvalidArgumentException("Invalid argument, expected an array");
+
+        return $this->select($param)->toArray();
+    }
+
+    /**
+     * Salva ou altera registro, se for passado o código do registro se faz um UPDATE caso contrário se faz um INSERT
+     * @param Arquivo $arquivo
+     * @return bool|int
+     */
+    public function save(Arquivo $arquivo)
+    {
+        $cod = (int) $arquivo->getCod();
+
+        $data = array_filter($arquivo->toArray());
+        $data = array_change_key_case($data, CASE_UPPER);
+
+        if ($cod == 0) {
+
+            return $this->insert($data);
+
+        } else {
+
+            if ($this->findBy(array('COD' => $cod))) {
+                return $this->update($data, array('COD' => $cod));
+            } else {
+                return false;
+            }
+
+        }
+
+    }
+
+    /**
+     * Deleta um registro
+     * @param array $param
+     * @return int
+     * @throws \Zend\Db\TableGateway\Exception\InvalidArgumentException
+     */
+    public function remove(Array $param = array())
+    {
+        if (! is_array($param))
+            throw new InvalidArgumentException("Invalid argument, expected an array");
+
+        return $this->delete($param);
+    }
+
+}
