@@ -51,16 +51,12 @@ abstract class AbstractTable extends AbstractTableGateway
      */
     public function fetchAll($order = null)
     {
-        //Definindo novo select
-        $select = new Select();
-        $select->from($this->table);
+        if (!is_null($order))
+            $order = "ORDER BY {$order}";
 
-        if (! is_null($order))
-            $select->order($order);
+        $sql = "SELECT {$this->table}.*  FROM {$this->table} {$order}";
 
-        //Configurando o novo select
-        $statement = $this->adapter->createStatement();
-        $select->prepareStatement($this->adapter, $statement);
+        $statement = $this->adapter->createStatement($sql);
         $resultSet = new ResultSet;
         $result = $resultSet->initialize($statement->execute());
 
@@ -106,7 +102,16 @@ abstract class AbstractTable extends AbstractTableGateway
         if (! is_array($param))
             throw new InvalidArgumentException("Invalid argument, expected an array");
 
-        return $this->select($param)->toArray();
+        $key = array_keys($param);
+        $val = array_values($param);
+
+        $sql = "SELECT {$this->table}.* FROM {$this->table} WHERE {$this->table}.{$key[0]} = {$val[0]}";
+
+        $statement = $this->adapter->createStatement($sql);
+        $resultSet = new ResultSet;
+        $result = $resultSet->initialize($statement->execute());
+
+        return $result->toArray();
     }
 
     /**
