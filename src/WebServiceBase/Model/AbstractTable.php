@@ -60,7 +60,13 @@ abstract class AbstractTable extends AbstractTableGateway
         $resultSet = new ResultSet;
         $result = $resultSet->initialize($statement->execute());
 
-        return $result->toArray();
+        //Converte os Valores para UTF-8
+        $encodedArray = array();
+        foreach ($result->toArray() as $value) {
+            $encodedArray[] = array_map('utf8_encode', $value);
+        }
+
+        return $encodedArray;
     }
 
     /**
@@ -88,7 +94,13 @@ abstract class AbstractTable extends AbstractTableGateway
         $resultSet = new ResultSet;
         $result = $resultSet->initialize($statement->execute());
 
-        return $result->toArray();
+        //Converte os Valores para UTF-8
+        $encodedArray = array();
+        foreach ($result->toArray() as $value) {
+            $encodedArray[] = array_map('utf8_encode', $value);
+        }
+
+        return $encodedArray;
     }
 
     /**
@@ -111,36 +123,21 @@ abstract class AbstractTable extends AbstractTableGateway
         $resultSet = new ResultSet;
         $result = $resultSet->initialize($statement->execute());
 
-        return $result->toArray();
+        //Converte os Valores para UTF-8
+        $encodedArray = array();
+        foreach ($result->toArray() as $value) {
+            $encodedArray[] = array_map('utf8_encode', $value);
+        }
+
+        return $encodedArray;
     }
 
     /**
      * Salva ou altera registro, se for passado o código do registro se faz um UPDATE caso contrário se faz um INSERT
-     * @param Arquivo $arquivo
+     * @param $class object
      * @return bool|int
      */
-    public function save(Arquivo $arquivo)
-    {
-        $cod = (int) $arquivo->getCod();
-
-        $data = array_filter($arquivo->toArray());
-        $data = array_change_key_case($data, CASE_UPPER);
-
-        if ($cod == 0) {
-
-            return $this->insert($data);
-
-        } else {
-
-            if ($this->findBy(array('COD' => $cod))) {
-                return $this->update($data, array('COD' => $cod));
-            } else {
-                return false;
-            }
-
-        }
-
-    }
+    abstract public function save($class);
 
     /**
      * Deleta um registro
